@@ -1,0 +1,55 @@
+{
+  "expo": {
+    "name": "Conquer",
+    "slug": "conquer",
+    "version": "0.5.0",
+    "orientation": "portrait",
+    "scheme": "conquer",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "app.conquer.pilot",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "app.conquer.pilot",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundColor": "#101615"
+      },
+      "permissions": [
+        "POST_NOTIFICATIONS",
+        "android.permission.RECEIVE_BOOT_COMPLETED"
+      ],
+      "versionCode": 6,
+      "blockedPermissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.SYSTEM_ALERT_WINDOW"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "name": "Conquer",
+      "shortName": "Conquer",
+      "themeColor": "#101615",
+      "backgroundColor": "#101615"
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Conquer folosește GPS-ul pentru a desena traseul alergării tale.",
+          "locationAlwaysAndWhenInUsePermission": "Conquer înregistrează alergarea începută de tine și când ecranul este stins.",
+          "isIosBackgroundLocationEnabled": true,
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true,
+          "androidForegroundServiceIcon": "./assets/notification-icon.png"
+        }
+      ]
+    ]
+  }
+}

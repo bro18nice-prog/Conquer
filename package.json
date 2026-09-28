@@ -1,0 +1,51 @@
+{
+  "name": "conquer",
+  "description": "Private territory game for walks and runs",
+  "license": "0BSD",
+  "version": "0.1.0",
+  "main": "index.ts",
+  "dependencies": {
+    "@expo/metro-runtime": "~57.0.15",
+    "@react-native-async-storage/async-storage": "^2.2.0",
+    "@supabase/supabase-js": "^2.116.0",
+    "expo": "~57.0.23",
+    "expo-constants": "~57.0.18",
+    "expo-crypto": "~57.0.3",
+    "expo-document-picker": "~57.0.0",
+    "expo-file-system": "~57.0.0",
+    "expo-location": "~57.0.18",
+    "expo-sharing": "~57.0.0",
+    "expo-status-bar": "~57.0.1",
+    "expo-task-manager": "~57.0.18",
+    "leaflet": "^1.9.4",
+    "lucide-react-native": "^1.46.0",
+    "polygon-clipping": "^0.15.7",
+    "react": "19.2.3",
+    "react-dom": "^19.2.3",
+    "react-native": "0.86.3",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-svg": "^15.15.4",
+    "react-native-web": "^0.21.2",
+    "react-native-webview": "^13.16.1",
+    "tsx": "^4.23.13"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "@electric-sql/pglite-postgis": "^0.2.8",
+    "@types/react": "~19.2.2",
+    "prettier": "^3.9.7",
+    "typescript": "~6.0.3"
+  },
+  "scripts": {
+    "start": "expo start",
+    "web": "expo start --web",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "typecheck": "tsc --noEmit",
+    "test": "node scripts/test.cjs",
+    "build:map": "node scripts/build-map.cjs",
+    "build:web": "expo export --platform web",
+    "build:android": "expo prebuild --platform android"
+  },
+  "private": true
+}
