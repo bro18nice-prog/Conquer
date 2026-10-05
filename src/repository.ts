@@ -14,6 +14,8 @@ import {
   Point,
   Run,
   analyze,
+  distance,
+  validPoint,
   territoriesFromRuns,
   recalculateRuns,
 } from "./core";
@@ -56,6 +58,16 @@ export function createRepository(store: KeyValueStore) {
       await write("runs", updated);
       return updated;
     });
+  // Drop noisy fixes at capture time: poor accuracy, or a jump that is
+  // physically impossible for a runner (cell/Wi-Fi fixes, tunnels, cold start).
+  const plausible = (prev: Point | undefined, p: Point) => {
+    if (!validPoint(p) || p.accuracy > 25) return false;
+    if (!prev) return true;
+    const dt = (p.timestamp - prev.timestamp) / 1000;
+    const d = distance(prev, p);
+    if (d < Math.max(2, Math.min(prev.accuracy, p.accuracy) * 0.5)) return false;
+    return dt > 0 && d / dt <= 8;
+  };
   const appendLocations = (points: Point[]) =>
     transaction(async () => {
       const r = await recording();
@@ -67,7 +79,7 @@ export function createRepository(store: KeyValueStore) {
             "Limita de 10.000 de puncte GPS a fost atinsă. Oprește și salvează activitatea.";
           break;
         }
-        if (p.timestamp > last) {
+        if (p.timestamp > last && plausible(r.points.at(-1), p)) {
           r.points.push(p);
           last = p.timestamp;
         }

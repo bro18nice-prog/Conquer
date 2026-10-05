@@ -1,0 +1,65 @@
+name: ci
+on:
+  push:
+    branches: [main, "fix/**", "feature/**"]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 17 }
+      - run: npm ci
+      - name: typecheck
+        id: typecheck
+        continue-on-error: true
+        run: npm run typecheck 2>&1 | tee typecheck.txt; exit ${PIPESTATUS[0]}
+      - name: tests
+        id: tests
+        continue-on-error: true
+        run: npm test 2>&1 | tee tests.txt; exit ${PIPESTATUS[0]}
+      - name: web build
+        id: web
+        continue-on-error: true
+        run: npm run build:web 2>&1 | tee web.txt; exit ${PIPESTATUS[0]}
+      - name: audit
+        continue-on-error: true
+        run: npm audit --omit=dev 2>&1 | tee audit.txt
+      - name: apk
+        id: apk
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          export CONQUER_KEYSTORE="$RUNNER_TEMP/ci.jks"
+          export CONQUER_STORE_PASSWORD="$(openssl rand -hex 16)"
+          keytool -genkeypair -keystore "$CONQUER_KEYSTORE" -storepass "$CONQUER_STORE_PASSWORD" \
+            -keypass "$CONQUER_STORE_PASSWORD" -alias conquer -keyalg RSA -keysize 2048 \
+            -validity 10000 -dname "CN=Conquer CI"
+          {
+            npx expo prebuild --platform android --no-install
+            node scripts/prepare-android-release.cjs
+            cd android
+            ./gradlew :app:assembleRelease -PreactNativeArchitectures=arm64-v8a --no-daemon --console=plain
+          } 2>&1 | tee ../apk.txt
+          cp app/build/outputs/apk/release/app-release.apk ../conquer.apk
+      - name: publish
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="build-${{ github.run_number }}"
+          files="typecheck.txt tests.txt web.txt audit.txt apk.txt"
+          [ -f conquer.apk ] && files="$files conquer.apk"
+          gh release create "$tag" $files --prerelease --title "$tag" --notes "${{ github.sha }}" --target "${{ github.sha }}"
+      - name: fail if any step failed
+        if: steps.typecheck.outcome == 'failure' || steps.tests.outcome == 'failure' || steps.web.outcome == 'failure' || steps.apk.outcome == 'failure'
+        run: exit 1
