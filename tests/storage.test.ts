@@ -156,3 +156,24 @@ test("upgrade reprocesses a rejected legacy route without losing GPS samples", a
   assert.deepEqual(runs[0].points, points);
   assert.equal((await repo.upgradeRuns())[0].area, runs[0].area);
 });
+
+test("GPS noise is dropped while recording", async () => {
+  const { repo } = setup();
+  await repo.write("recording", draft());
+  const t = Date.now();
+  const p = (lat: number, lon: number, s: number, acc = 5) => ({
+    latitude: lat,
+    longitude: lon,
+    timestamp: t + s * 1000,
+    accuracy: acc,
+  });
+  await repo.appendLocations([
+    p(45, 25, 0),
+    p(45.0001, 25, 5), // ~11 m in 5 s: kept
+    p(45.01, 25, 8), // ~1 km jump: dropped
+    p(45.0002, 25, 10, 60), // poor accuracy: dropped
+    p(45.0002, 25, 12), // ~11 m from last good: kept
+  ]);
+  const r = await repo.recording();
+  assert.equal(r?.points.length, 3);
+});
